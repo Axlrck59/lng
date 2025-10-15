@@ -13,7 +13,7 @@ const base = new Airtable({
 }).base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
 
 export interface GiftReservation {
-  id?: string;
+  id: string;
   giftId: string;
   reservedBy: string;
   timestamp: string;
@@ -53,27 +53,29 @@ export const saveReservation = async (giftId: string, reservedBy: string): Promi
 export const getReservations = async (): Promise<GiftReservation[]> => {
   try {
     const records = await base('Reservations').select().all();
-    return records.map(record => {
-      const giftId = record.get('giftId');
-      const reservedBy = record.get('reservedBy');
-      const timestamp = record.get('timestamp');
+    return records
+      .map(record => {
+        const giftId = record.get('giftId');
+        const reservedBy = record.get('reservedBy');
+        const timestamp = record.get('timestamp');
 
-      // Add more detailed logging to help debug the issue
-      if (!giftId) {
-        console.warn('Missing giftId in record:', record.id);
-        return null;
-      }
-      
-      // Convert any non-string giftId to string if possible
-      const normalizedGiftId = String(giftId);
-      
-      return {
-        id: record.id,
-        giftId: normalizedGiftId,
-        reservedBy: typeof reservedBy === 'string' ? reservedBy : '',
-        timestamp: typeof timestamp === 'string' ? timestamp : new Date().toISOString().split('T')[0]
-      };
-    }).filter((record): record is GiftReservation => record !== null);
+        // Add more detailed logging to help debug the issue
+        if (!giftId) {
+          console.warn('Missing giftId in record:', record.id);
+          return null;
+        }
+        
+        // Convert any non-string giftId to string if possible
+        const normalizedGiftId = String(giftId);
+        
+        return {
+          id: record.id,
+          giftId: normalizedGiftId,
+          reservedBy: typeof reservedBy === 'string' ? reservedBy : '',
+          timestamp: typeof timestamp === 'string' ? timestamp : new Date().toISOString().split('T')[0]
+        };
+      })
+      .filter((record): record is GiftReservation => record !== null) as GiftReservation[];
   } catch (error) {
     console.error('Error fetching reservations:', error);
     throw error;
